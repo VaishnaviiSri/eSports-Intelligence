@@ -7,6 +7,7 @@ venv/
 # Environment variables
 .env
 .env.*
+!.env.example
 
 # API keys
 secrets.json
@@ -20,6 +21,10 @@ chroma_db/
 
 # Original downloaded documents
 data/raw/
+
+# Generated or local data
+data/processed/
+data/index/
 
 # Temporary extracted files
 data/processed/rulebook_extracted.txt

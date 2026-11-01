@@ -1,0 +1,1 @@
+"""Esports Intelligence application package."""
