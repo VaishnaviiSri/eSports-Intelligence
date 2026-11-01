@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Environment variables
+.env
+.env.*
+
+# API keys
+secrets.json
+
+# Local databases
+*.db
+*.sqlite3
+
+# Local vector database
+chroma_db/
+
+# Original downloaded documents
+data/raw/
+
+# Temporary extracted files
+data/processed/rulebook_extracted.txt
+
+# IDE files
+.vscode/
+.idea/
+
+# Operating system
+.DS_Store
