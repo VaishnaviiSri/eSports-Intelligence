@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Esports Intelligence | BGMI Rules</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="wordmark" href="/" aria-label="Esports Intelligence home">
+          <span class="mark">EI</span>
+          <span>ESPORTS<br>INTELLIGENCE</span>
+        </a>
+        <div class="edition">RULEBOOK DESK <span>BMIC 2026</span></div>
+      </header>
+
+      <section class="workspace" aria-labelledby="page-title">
+        <div class="intro">
+          <p class="eyebrow">OFFICIAL COMPETITION RULES</p>
+          <h1 id="page-title">Ask the rulebook.</h1>
+          <p class="subhead">Answers are grounded in the BMIC 2026 competition document.</p>
+        </div>
+
+        <form id="chat-form" class="question-form">
+          <label for="question">Your question</label>
+          <textarea id="question" name="question" rows="4" maxlength="4000" required placeholder="Ask about eligibility, scoring, match procedures…"></textarea>
+          <div class="form-controls">
+            <label class="scope-label" for="scope">Rule scope</label>
+            <select id="scope" name="scope">
+              <option value="auto">Auto</option>
+              <option value="general">General Rules</option>
+              <option value="event_specific">Competition-Specific Rules</option>
+            </select>
+            <button id="send-button" type="submit"><span>Send question</span><span aria-hidden="true">↗</span></button>
+          </div>
+        </form>
+
+        <p id="status" class="status" role="status" aria-live="polite"></p>
+        <section id="response" class="response" aria-live="polite" hidden>
+          <div class="response-heading"><span>ANSWER</span><span id="scope-used"></span></div>
+          <p id="answer" class="answer"></p>
+          <div class="citation-heading">SOURCES <span id="citation-count">0</span></div>
+          <ol id="citations" class="citations"></ol>
+        </section>
+      </section>
+      <footer><span>ESPORTS INTELLIGENCE</span><span>BMIC 2026 · RULEBOOK ASSISTANT</span></footer>
+    </main>
+  </body>
+</html>
