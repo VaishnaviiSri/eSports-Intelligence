@@ -6,6 +6,8 @@ from functools import lru_cache
 
 from app.core.config import settings
 
+BGE_QUERY_PREFIX = "Represent this sentence for searching relevant passages: "
+
 
 @lru_cache(maxsize=1)
 def load_embedding_model(model_name: str | None = None):
@@ -29,6 +31,13 @@ def embed_texts(texts: list[str]) -> list[list[float]]:
 
 
 def embed_query(question: str) -> list[float]:
-    """Encode a single user query with the same normalized model."""
-    vectors = embed_texts([question])
-    return vectors[0]
+    """Encode a single query with the BGE retrieval instruction prefix."""
+    model = load_embedding_model()
+    vectors = model.encode(
+        [BGE_QUERY_PREFIX + question],
+        normalize_embeddings=True,
+        convert_to_numpy=True,
+        show_progress_bar=False,
+    )
+    vector = vectors[0]
+    return vector.tolist() if hasattr(vector, "tolist") else list(vector)

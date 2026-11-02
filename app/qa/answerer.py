@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from typing import Any
 
@@ -13,13 +14,20 @@ from app.rag.retriever import RetrievedChunk, retrieve
 from app.rag.vector_store import get_collection
 from app.schemas.chat import ChatRequest, ChatResponse, Citation
 
+logger = logging.getLogger(__name__)
+
 FALLBACK_ANSWER = "I don't know based on the provided rulebook."
-_CITATION_TOKEN = re.compile(r"\[(C\d+)\]")
-_SENTENCE_SPLIT = re.compile(r"(?<=[.!?])\s+")
 
 
 class IndexUnavailableError(RuntimeError):
     """Raised when no Chroma collection has been indexed."""
+
+
+def _fallback_with_raw_response(
+    request: ChatRequest, raw_response: str
+) -> ChatResponse:
+    logger.error(f"RAW LLM RESPONSE: {raw_response}")
+    return ChatResponse(answer=FALLBACK_ANSWER, citations=[], scope_used=request.scope)
 
 
 def _source_text(chunk: RetrievedChunk) -> str:
@@ -48,14 +56,6 @@ def _parse_llm_result(raw: str) -> tuple[str, list[str]] | None:
     ):
         return None
     return answer.strip(), citation_ids
-
-
-def _answer_is_cited(answer: str, citation_ids: list[str]) -> bool:
-    """Require at least one known citation token in each non-empty sentence."""
-    if not citation_ids:
-        return False
-    sentences = [sentence.strip() for sentence in _SENTENCE_SPLIT.split(answer) if sentence.strip()]
-    return bool(sentences) and all(_CITATION_TOKEN.search(sentence) for sentence in sentences)
 
 
 def _make_citations(
@@ -99,21 +99,12 @@ def answer_question(request: ChatRequest) -> ChatResponse:
     raw_result = llm_client.generate(build_messages(request.question, request.scope, chunks))
     parsed = _parse_llm_result(raw_result)
     if parsed is None:
-        return ChatResponse(answer=FALLBACK_ANSWER, citations=[], scope_used=request.scope)
+        return _fallback_with_raw_response(request, raw_result)
     answer, citation_ids = parsed
     if answer == FALLBACK_ANSWER:
-        return ChatResponse(answer=FALLBACK_ANSWER, citations=[], scope_used=request.scope)
+        return _fallback_with_raw_response(request, raw_result)
 
-    available_ids = {f"C{index}" for index in range(1, len(chunks) + 1)}
-    if not set(citation_ids).issubset(available_ids):
-        return ChatResponse(answer=FALLBACK_ANSWER, citations=[], scope_used=request.scope)
-    used_ids = _CITATION_TOKEN.findall(answer)
-    if not used_ids or not set(used_ids).issubset(set(citation_ids)):
-        return ChatResponse(answer=FALLBACK_ANSWER, citations=[], scope_used=request.scope)
-    if not _answer_is_cited(answer, used_ids):
-        return ChatResponse(answer=FALLBACK_ANSWER, citations=[], scope_used=request.scope)
-
-    citations = _make_citations(chunks, list(dict.fromkeys(used_ids)))
+    citations = _make_citations(chunks, citation_ids)
     if citations is None or not citations:
-        return ChatResponse(answer=FALLBACK_ANSWER, citations=[], scope_used=request.scope)
+        return _fallback_with_raw_response(request, raw_result)
     return ChatResponse(answer=answer, citations=citations, scope_used=request.scope)

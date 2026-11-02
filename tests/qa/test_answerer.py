@@ -31,16 +31,21 @@ def _chunks():
     ]
 
 
-def test_answer_maps_citations_from_retrieved_chunks(monkeypatch) -> None:
+def test_answer_maps_json_citation_without_inline_token(monkeypatch) -> None:
     monkeypatch.setattr(answerer, "get_collection", lambda: NonEmptyCollection())
     monkeypatch.setattr(answerer, "retrieve", lambda *args, **kwargs: _chunks())
     monkeypatch.setattr(
         answerer.llm_client,
         "generate",
-        lambda _: json.dumps({"answer": "The minimum age is 16 [C1].", "citation_ids": ["C1"]}),
+        lambda _: json.dumps(
+            {
+                "answer": "The minimum age to participate is 16 years old.",
+                "citation_ids": ["C1"],
+            }
+        ),
     )
     result = answerer.answer_question(ChatRequest(question="age?", scope="general"))
-    assert result.answer == "The minimum age is 16 [C1]."
+    assert result.answer == "The minimum age to participate is 16 years old."
     assert result.citations[0].page_number == 8
     assert result.citations[0].section == "2.1 Eligibility"
     assert result.citations[0].content_snippet == _chunks()[0].content
